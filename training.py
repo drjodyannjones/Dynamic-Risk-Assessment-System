@@ -1,13 +1,10 @@
 import os
 import json
-from flask import Flask, session, jsonify, request
 import pandas as pd
 import numpy as np
 import pickle
-from sklearn import metrics
 from sklearn.model_selection import train_test_split
 from sklearn.linear_model import LogisticRegression
-
 
 ###################Load config.json and get path variables
 with open('config.json','r') as f:
@@ -17,28 +14,39 @@ output_folder_path = config['output_folder_path']
 output_model_path = config['output_model_path']
 
 def read_finaldata_csv():
-    # Set the path to finaldata.csv
     finaldata_path = os.path.join(output_folder_path, 'finaldata.csv')
-
-    # Read the CSV file into a pandas dataframe
     df = pd.read_csv(finaldata_path)
+    return df
 
-    # Return the dataframe
+def preprocess_data(df):
+    # Drop the 'corporation' column
+    df.drop(columns=['corporation'], inplace=True)
+
+    for column in df.columns:
+        # Convert non-numeric values to NaN
+        df[column] = pd.to_numeric(df[column], errors='coerce')
+
+        # If the column is not the 'label' column, replace NaN values with the mean of the column
+        if column != 'exited':
+            df[column].fillna(df[column].mean(), inplace=True)
+
+    # Drop rows with NaN values in the 'label' column
+    df.dropna(subset=['exited'], inplace=True)
+
     return df
 
 
 #################Function for training the model
 def train_model():
-
-    # Set the path to finaldata.csv
     finaldata_path = os.path.join(output_folder_path, 'finaldata.csv')
-
-    # Read finaldata.csv into a pandas dataframe
     df = read_finaldata_csv()
 
+    # Preprocess the data
+    df = preprocess_data(df)
+
     # Split the data into features (X) and labels (y)
-    X = df.drop('label', axis=1)
-    y = df['label']
+    X = df.drop('exited', axis=1)
+    y = df['exited']
 
     # Split the data into training and test sets
     X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=0)
@@ -46,7 +54,7 @@ def train_model():
     # Train a logistic regression model
     model = LogisticRegression(C=1.0, class_weight=None, dual=False, fit_intercept=True,
                     intercept_scaling=1, l1_ratio=None, max_iter=100,
-                    multi_class='warn', n_jobs=None, penalty='l2',
+                    multi_class='auto', n_jobs=None, penalty='l2',
                     random_state=0, solver='liblinear', tol=0.0001, verbose=0,
                     warm_start=False)
     model.fit(X_train, y_train)
@@ -62,3 +70,6 @@ def train_model():
     model_path = os.path.join(output_model_path, 'trainedmodel.pkl')
     with open(model_path, 'wb') as f:
         pickle.dump(model, f)
+
+if __name__ == '__main__':
+    train_model()
