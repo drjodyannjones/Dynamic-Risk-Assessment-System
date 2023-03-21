@@ -1,40 +1,72 @@
-
-
-import training
+import os
+import json
+import pandas as pd
+from sklearn.metrics import f1_score
+import pickle
 import scoring
-import deployment
-import diagnostics
-import reporting
-
-##################Check and read new data
-#first, read ingestedfiles.txt
-
-#second, determine whether the source data folder has files that aren't listed in ingestedfiles.txt
+from training import preprocess_data
 
 
+# Load config.json and get path variables
+with open('config.json', 'r') as f:
+    config = json.load(f)
 
-##################Deciding whether to proceed, part 1
-#if you found new data, you should proceed. otherwise, do end the process here
-
-
-##################Checking for model drift
-#check whether the score from the deployed model is different from the score from the model that uses the newest ingested data
-
-
-##################Deciding whether to proceed, part 2
-#if you found model drift, you should proceed. otherwise, do end the process here
+dataset_csv_path = os.path.join(config['output_folder_path'])
+prod_deployment_path = os.path.join(config['prod_deployment_path'])
+latestscore_path = os.path.join(prod_deployment_path, 'latestscore.txt')
 
 
+# Check for new data
+with open(os.path.join(prod_deployment_path, 'ingestedfiles.txt'), 'r') as f:
+    ingested_files = set(f.read().splitlines())
 
-##################Re-deployment
-#if you found evidence for model drift, re-run the deployment.py script
+all_files = set(os.listdir(dataset_csv_path))
+new_files = all_files - ingested_files
 
-##################Diagnostics and reporting
-#run diagnostics.py and reporting.py for the re-deployed model
+if len(new_files) == 0:
+    print("No new data to process")
+else:
+    print("New data detected:", new_files)
 
+    for file in new_files:
+        file_path = os.path.join(dataset_csv_path, file)
+        df_new = pd.read_csv(file_path)
 
+        # Preprocess new data
+        df_new = preprocess_data(df_new)
 
+        # Load the trained model
+        model_path = os.path.join(prod_deployment_path, 'trainedmodel.pkl')
+        with open(model_path, 'rb') as f:
+            model = pickle.load(f)
 
+        # Make predictions on new data
+        X_new = df_new.drop('exited', axis=1)
+        y_new = df_new['exited']
+        predictions = model.predict(X_new)
 
+        # Calculate F1 score for new predictions
+        f1score = f1_score(y_new, predictions)
 
+        # Check for model drift
+        with open(latestscore_path, 'r') as f:
+            latestscore = float(f.read().strip().split(':')[1])
 
+        if f1score < latestscore:
+            print("Model drift has occurred.")
+
+        # Write new data to ingestedfiles.txt
+        with open(os.path.join(prod_deployment_path, 'ingestedfiles.txt'), 'a') as f:
+            f.write(file + "\n")
+
+        # Update latestscore.txt
+        with open(latestscore_path, 'w') as f:
+            f.write(f"F1 Score: {f1score:.2f}")
+
+        # Run scoring.py on new predictions
+        score = scoring.score_model(predictions, y_new)
+
+        # Print summary statistics
+        print(f"New data summary statistics:\n{df_new.describe()}")
+        print(f"F1 Score: {f1score:.2f}")
+        print(f"Score: {score:.2f}\n")

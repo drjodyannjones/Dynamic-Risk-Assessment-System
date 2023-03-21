@@ -1,1 +1,1 @@
-F1 Score: 0.67
+F1 Score: 0.82
