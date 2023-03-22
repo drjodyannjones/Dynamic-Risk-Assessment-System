@@ -21,3 +21,12 @@ responses = {
 # Write the responses to a JSON file
 with open('api_responses.json', 'w') as f:
     json.dump(responses, f, indent=4)
+
+# Combine the responses as a string with proper formatting
+combined_responses = "\n".join(
+    [f"{key}:\n{json.dumps(value, indent=4)}" for key, value in responses.items()]
+)
+
+# Write the combined responses to a file called apireturns.txt
+with open('apireturns.txt', 'w') as f:
+    f.write(combined_responses)
