@@ -44,7 +44,7 @@ def summary_stats():
 def diagnostics():
     timing = execution_time()
     outdated_packages = outdated_packages_list()
-    diagnostics = {'timing': timing, 'outdated_packages': outdated_packages}
+    diagnostics = {'timing': timing, 'outdated_packages': outdated_packages, 'na_percentage': na_percentage}
     return jsonify(diagnostics)
 
 if __name__ == "__main__":
