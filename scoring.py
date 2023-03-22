@@ -20,7 +20,7 @@ model_path = config['output_model_path']
 
 
 #################Function for model scoring
-def score_model():
+def score_model(predictions, y_true):
     # Load test data
     test_data_csv_path = os.path.join(test_data_path, 'testdata.csv')
     test_data = pd.read_csv(test_data_csv_path)
