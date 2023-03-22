@@ -30,7 +30,7 @@ else:
     print("New data detected:", new_files)
 
     for file in new_files:
-        file_path = os.path.join(dataset_csv_path, file)
+        file_path = os.path.join(sourcedata_folder_path, file)
         df_new = pd.read_csv(file_path)
 
         # Preprocess new data
