@@ -6,7 +6,6 @@ import pickle
 import scoring
 from training import preprocess_data
 
-
 # Load config.json and get path variables
 with open('config.json', 'r') as f:
     config = json.load(f)
@@ -23,7 +22,6 @@ with open(os.path.join(prod_deployment_path, 'ingestedfiles.txt'), 'r') as f:
 all_files = set(os.listdir(sourcedata_folder_path))
 new_files = all_files - ingested_files
 
-
 if len(new_files) == 0:
     print("No new data to process")
 else:
@@ -31,7 +29,11 @@ else:
 
     for file in new_files:
         file_path = os.path.join(sourcedata_folder_path, file)
-        df_new = pd.read_csv(file_path)
+        try:
+            df_new = pd.read_csv(file_path)
+        except pd.errors.EmptyDataError:
+            print(f"Error: The file {file} is empty or incorrectly formatted.")
+            continue
 
         # Preprocess new data
         df_new = preprocess_data(df_new)
