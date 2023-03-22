@@ -29,6 +29,9 @@ def merge_multiple_dataframe():
     output_path = os.path.join(output_folder_path, 'finaldata.csv')
     merged_dataframe.to_csv(output_path, index=False)
 
+    # Drop duplicates from the merged dataframe
+    merged_dataframe.drop_duplicates(inplace=True)
+
     # Record the ingestion in a log file
     log_path = os.path.join(output_folder_path, 'ingestedfiles.txt')
     with open(log_path, 'a') as f:
