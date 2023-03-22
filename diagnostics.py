@@ -74,8 +74,19 @@ def outdated_packages_list():
 
     return outdated_packages
 
+def na_percentage():
+    # Read the test data
+    test_data = pd.read_csv(test_data_path)
+
+    # Calculate the percentage of NA values in each numeric column
+    na_percent = test_data.select_dtypes(include=[np.number]).isna().mean().round(4) * 100
+
+    return na_percent.to_dict()
+
+
 if __name__ == '__main__':
     print("Model Predictions:", model_predictions())
     print("\nDataframe Summary:", dataframe_summary())
     print("\nExecution Time:", execution_time())
     print("\nOutdated Packages List:", outdated_packages_list())
+    print("\nPercentage of NA values in Numeric Columns:", na_percentage())
