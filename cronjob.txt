@@ -1,0 +1,1 @@
+*/10 * * * * /Users/drjodyannjones/Documents/Projects/Dynamic-Risk-Assessment-System/fullprocess.py >> /Users/drjodyannjones/Documents/Projects/Dynamic-Risk-Assessment-System/cron.log 2>&1
