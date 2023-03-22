@@ -11,17 +11,18 @@ from training import preprocess_data
 with open('config.json', 'r') as f:
     config = json.load(f)
 
-dataset_csv_path = os.path.join(config['output_folder_path'])
+sourcedata_folder_path = os.path.join(config['input_folder_path'])
+ingesteddata_folder_path = os.path.join(config['output_folder_path'])
 prod_deployment_path = os.path.join(config['prod_deployment_path'])
 latestscore_path = os.path.join(prod_deployment_path, 'latestscore.txt')
-
 
 # Check for new data
 with open(os.path.join(prod_deployment_path, 'ingestedfiles.txt'), 'r') as f:
     ingested_files = set(f.read().splitlines())
 
-all_files = set(os.listdir(dataset_csv_path))
+all_files = set(os.listdir(sourcedata_folder_path))
 new_files = all_files - ingested_files
+
 
 if len(new_files) == 0:
     print("No new data to process")
