@@ -8,13 +8,12 @@ from sklearn.model_selection import train_test_split
 from sklearn.linear_model import LogisticRegression
 import json
 from training import preprocess_data
-
+from diagnostics import model_predictions
 
 #################Load config.json and get path variables
 with open('config.json','r') as f:
     config = json.load(f)
 
-dataset_csv_path = os.path.join(config['output_folder_path'])
 test_data_path = config['test_data_path']
 model_path = config['output_model_path']
 
@@ -32,16 +31,8 @@ def score_model(predictions, y_true):
     X_test = test_data.drop('exited', axis=1)
     y_test = test_data['exited']
 
-    # Load the trained model
-    model_file_path = os.path.join(model_path, 'trainedmodel.pkl')
-    with open(model_file_path, 'rb') as f:
-        model = pickle.load(f)
-
-    # Make predictions using the model
-    y_pred = model.predict(X_test)
-
     # Calculate the F1 score
-    f1_score = metrics.f1_score(y_test, y_pred)
+    f1_score = metrics.f1_score(y_true, predictions)
 
     # Write the result to the latestscore.txt file in the output_model_path directory
     latest_score_file_path = os.path.join(model_path, 'latestscore.txt')
@@ -51,4 +42,10 @@ def score_model(predictions, y_true):
     print(f'F1 Score: {f1_score:.2f}')
 
 if __name__ == '__main__':
-    score_model()
+    # Get model predictions and load test labels
+    predictions = model_predictions()
+    test_data = pd.read_csv(os.path.join(test_data_path, 'testdata.csv'))
+    y_true = test_data['exited']
+
+    # Score the model on the test data
+    score_model(predictions, y_true)
