@@ -5,6 +5,7 @@ import numpy as np
 import pickle
 from sklearn.model_selection import train_test_split
 from sklearn.linear_model import LogisticRegression
+from sklearn.metrics import f1_score
 
 ###################Load config.json and get path variables
 with open('config.json','r') as f:
@@ -59,10 +60,10 @@ def train_model():
                     warm_start=False)
     model.fit(X_train, y_train)
 
-    # Evaluate the model on the test set
+    # Evaluate the model on the test set using F1 score
     y_pred = model.predict(X_test)
-    accuracy = np.mean(y_pred == y_test)
-    print(f'Accuracy: {accuracy:.2f}')
+    f1 = f1_score(y_test, y_pred)
+    print(f'F1 Score: {f1:.2f}')
 
     # Write the trained model to a file using pickle
     if not os.path.exists(output_model_path):
@@ -71,5 +72,7 @@ def train_model():
     with open(model_path, 'wb') as f:
         pickle.dump(model, f)
 
+    return y_pred, y_test
+
 if __name__ == '__main__':
-    train_model()
+    predictions, y_true = train_model()

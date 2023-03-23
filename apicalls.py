@@ -5,26 +5,17 @@ import json
 URL = "http://127.0.0.1:8000"
 
 # Call each API endpoint and store the responses
-try:
-    response1 = requests.post(URL + "/prediction")
-    response2 = requests.get(URL + "/scoring")
-    response3 = requests.get(URL + "/summarystats")
-    response4 = requests.get(URL + "/diagnostics")
-
-    response1.raise_for_status()
-    response2.raise_for_status()
-    response3.raise_for_status()
-    response4.raise_for_status()
-except requests.exceptions.RequestException as e:
-    print(f"Error in API calls: {e}")
-    exit(1)
+response1 = requests.post(URL + "/prediction")
+response2 = requests.get(URL + "/scoring")
+response3 = requests.get(URL + "/summarystats")
+response4 = requests.get(URL + "/diagnostics")
 
 # Combine all API responses
 responses = {
-    'predictions': response1.json(),
-    'scoring': response2.json(),
-    'summarystats': response3.json(),
-    'diagnostics': response4.json()
+    'predictions': response1.json()['predictions'],
+    'scoring': response2.json()['f1_score'],
+    'summarystats': response3.json()['summary_statistics'],
+    'diagnostics': response4.json()['diagnostics']
 }
 
 # Write the responses to a JSON file
@@ -39,5 +30,3 @@ combined_responses = "\n".join(
 # Write the combined responses to a file called apireturns.txt
 with open('apireturns.txt', 'w') as f:
     f.write(combined_responses)
-
-print("API responses saved to 'api_responses.json' and 'apireturns.txt'")
